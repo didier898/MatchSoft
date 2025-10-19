@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
 from .models import Question
 from .forms import AnswerForm
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 PRIZE_LADDER = [100,200,300,500,1000, 2000,3000,5000,7000,10000,
                 15000,25000,40000,60000,90000, 120000,160000,210000,270000,350000]
@@ -23,8 +25,10 @@ def _init_session(request):
         'used_questions': [],
         'score': 0,
         'lifelines': {k: False for k in LIFELINES},
+        'started_at': timezone.now().isoformat(),  # 👈 guardamos inicio
     }
     request.session.modified = True
+
 
 def start_game(request):
     _init_session(request)
@@ -124,12 +128,45 @@ def result_view(request):
     st = request.session.get('game')
     if not st:
         return redirect('core:start')
+
+    total = len(st['order'])
+    reached = st['index']
+
+    # Si vino por timeout, calcula premio asegurado (si ya lo tienes, puedes dejar tal cual)
+    if request.GET.get('timeout') == '1':
+        SAFE_HAVENS = {5, 10, 15}
+        PRIZE_LADDER = [100,200,300,500,1000, 2000,3000,5000,7000,10000,
+                        15000,25000,40000,60000,90000, 120000,160000,210000,270000,350000]
+        last_safe = 0
+        for s in sorted(SAFE_HAVENS):
+            if reached >= s:
+                last_safe = PRIZE_LADDER[s-1]
+        st['score'] = last_safe
+        request.session['game'] = st
+        request.session.modified = True
+
+    # ⏱️ Tiempo total transcurrido
+    started_at = st.get('started_at')
+    elapsed_minutes = 0
+    elapsed_seconds = 0
+    if started_at:
+        dt = parse_datetime(started_at)  # convierte ISO a datetime
+        if dt is not None:
+            delta = timezone.now() - dt
+            total_secs = int(delta.total_seconds())
+            elapsed_minutes, elapsed_seconds = divmod(total_secs, 60)
+
     last_q = None
-    if st['index'] > 0:
-        last_q = Question.objects.get(id=st['order'][st['index'] - 1])
+    if reached > 0 and reached <= total:
+        last_q = Question.objects.get(id=st['order'][reached - 1])
+
+    won = reached >= total
     return render(request, 'core/result.html', {
         'score': st['score'],
-        'reached': st['index'],
-        'total': len(st['order']),
+        'reached': reached,
+        'total': total,
         'last_question': last_q,
+        'won': won,
+        'elapsed_minutes': elapsed_minutes,
+        'elapsed_seconds': elapsed_seconds,
     })
