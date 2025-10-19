@@ -8,7 +8,13 @@
       <h2 class="text-xl md:text-2xl font-bold leading-snug mt-1">{{ question.text }}</h2>
     </div>
 
-    <form action="{% url 'core:submit_answer' %}" method="post" class="space-y-3">
+    <!-- Cronómetro -->
+    <div class="bg-slate-700 text-center rounded-xl py-2">
+      <span class="text-sm text-slate-300">Tiempo restante:</span>
+      <span id="timer" class="text-lg font-bold text-amber-400">02:00</span>
+    </div>
+
+    <form id="answer-form" action="{% url 'core:submit_answer' %}" method="post" class="space-y-3">
       {% csrf_token %}
       <div class="grid gap-3">
         {% for c in choices %}
@@ -59,4 +65,27 @@
     </div>
   </aside>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// === Cronómetro de 2 minutos ===
+(function(){
+  var totalSeconds = 120; // 2:00
+  var timerEl = document.getElementById('timer');
+  var tick = setInterval(function(){
+    totalSeconds--;
+    var m = String(Math.floor(totalSeconds/60)).padStart(2,'0');
+    var s = String(totalSeconds%60).padStart(2,'0');
+    if (timerEl) timerEl.textContent = m + ':' + s;
+
+    if (totalSeconds <= 0) {
+      clearInterval(tick);
+      alert('⏰ ¡Se acabó el tiempo!');
+      // Vamos al resultado marcando timeout=1 para que el servidor calcule el premio asegurado
+      window.location.href = "{% url 'core:result' %}?timeout=1";
+    }
+  }, 1000);
+})();
+</script>
 {% endblock %}
