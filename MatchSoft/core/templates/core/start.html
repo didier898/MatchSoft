@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% block title %}Inicio | Millonario{% endblock %}
+{% block content %}
+  <div class="grid md:grid-cols-2 gap-6 items-center">
+    <div>
+      <h2 class="text-xl font-bold mb-2">Modo: Ecuaciones lineales de primer grado</h2>
+      <p class="text-slate-300 mb-4">
+        Responde correctamente 20 preguntas, desde la más fácil hasta la más desafiante.
+        Usa tus comodines con sabiduría: <b>50:50</b>, <b>Audiencia</b>, <b>Amigo</b> y <b>Cambiar pregunta</b>.
+      </p>
+      <form action="{% url 'core:game' %}" method="get">
+        <button class="px-5 py-3 rounded-2xl bg-amber-500 text-slate-900 font-bold shadow hover:scale-[1.02] transition">
+          ¡Comenzar!
+        </button>
+      </form>
+    </div>
+    <div class="bg-slate-800 rounded-2xl p-5 shadow">
+      <h3 class="font-semibold mb-3">Tabla de premios (puntos)</h3>
+      <ol class="ladder space-y-1">
+        {% for prize in ladder %}
+          <li class="bg-slate-700">{{ prize }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+{% endblock %}
