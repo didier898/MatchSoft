@@ -6,11 +6,15 @@ from .models import Question
 from .forms import AnswerForm
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.http import HttpResponse
 
 PRIZE_LADDER = [100,200,300,500,1000, 2000,3000,5000,7000,10000,
                 15000,25000,40000,60000,90000, 120000,160000,210000,270000,350000]
 SAFE_HAVENS = {5,10,15}
 LIFELINES = ['5050','audiencia','amigo','cambiar']
+
+def home(request):
+    return HttpResponse("🚀 MatchSoft funcionando en Render")
 
 def _init_session(request):
     order = []
