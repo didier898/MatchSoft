@@ -8,14 +8,21 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.views.decorators.cache import never_cache
 
 PRIZE_LADDER = [100,200,300,500,1000, 2000,3000,5000,7000,10000,
                 15000,25000,40000,60000,90000, 120000,160000,210000,270000,350000]
 SAFE_HAVENS = {5,10,15}
 LIFELINES = ['5050','audiencia','amigo','cambiar']
 
-#def home(request):
-    #return render(request, "core/start.html")
+def home(request):
+    return render(request, "core/start.html")
+
+@never_cache
+def restart(request):
+    request.session.flush()
+    request.session.cycle_key()
+    return redirect('core:start')
 
 def _init_session(request):
     order = []
@@ -36,6 +43,8 @@ def _init_session(request):
 
 
 def start_game(request):
+    request.session.flush()
+    request.session.cycle_key()
     _init_session(request)
     return render(request, 'core/start.html', {'ladder': list(reversed(PRIZE_LADDER))})
 
