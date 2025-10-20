@@ -3,3 +3,10 @@ db.sqlite3
 =======
 >>>>>>> develop
 __pycache__/
+
+
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+/staticfiles
